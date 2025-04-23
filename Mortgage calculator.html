@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortgage Calculator with Rate Feed</title>
+    <style>
+        .calculator-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
+            font-family: Arial, sans-serif;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .result-label {
+            font-weight: bold;
+        }
+        h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        
+        /* Rate Feed Styling */
+        .rate-feed {
+            margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .rate-feed-header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .rate-feed-body {
+            padding: 0;
+        }
+        .rate-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .rate-item:last-child {
+            border-bottom: none;
+        }
+        .rate-term {
+            font-weight: bold;
+        }
+        .rate-value {
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        .rate-trend {
+            font-size: 14px;
+            margin-left: 8px;
+        }
+        .trend-up {
+            color: #e74c3c;
+        }
+        .trend-down {
+            color: #2ecc71;
+        }
+        .trend-neutral {
+            color: #95a5a6;
+        }
+        .rate-update {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-align: right;
+            padding: 5px 15px;
+            background-color: #f8f9fa;
+        }
+        .use-rate-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .use-rate-btn:hover {
+            background-color: #2980b9;
+        }
+        .rates-explainer {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <h2>Mortgage Calculator</h2>
+        
+        <!-- Rate Feed -->
+        <div class="rate-feed">
+            <div class="rate-feed-header">
+                <span>Current Mortgage Rates</span>
+                <span id="todaysDate"></span>
+            </div>
+            <div class="rate-feed-body">
+                <div class="rate-item">
+                    <span class="rate-term">30-Year Fixed</span>
+                    <div>
+                        <span class="rate-value" id="rate30y">6.59%</span>
+                        <span class="rate-trend trend-down">▼ 0.04%</span>
+                        <button class="use-rate-btn" onclick="useRate('30y')">Use Rate</button>
+                    </div>
+                </div>
+                <div class="rate-item">
+                    <span class="rate-term">15-Year Fixed</span>
+                    <div>
+                        <span class="rate-value" id="rate15y">5.89%</span>
+                        <span class="rate-trend trend-down">▼ 0.03%</span>
+                        <button class="use-rate-btn" onclick="useRate('15y')">Use Rate</button>
+                    </div>
+                </div>
+            </div>
+            <div class="rate-update">Last updated: <span id="lastUpdated">April 22, 2025</span></div>
+            <div class="rates-explainer">Rates shown are national averages and are for informational purposes only. Your actual rate may vary.</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="loanAmount">Loan Amount ($):</label>
+            <input type="number" id="loanAmount" placeholder="e.g., 300000" min="1" step="1000" value="300000">
+        </div>
+        <div class="form-group">
+            <label for="interestRate">Annual Interest Rate (%):</label>
+            <input type="number" id="interestRate" placeholder="e.g., 4.5" min="0.1" step="0.1" value="6.59">
+        </div>
+        <div class="form-group">
+            <label for="loanTerm">Loan Term (years):</label>
+            <input type="number" id="loanTerm" placeholder="e.g., 30" min="1" max="50" step="1" value="30">
+        </div>
+        <div class="form-group">
+            <label for="downPayment">Down Payment ($):</label>
+            <input type="number" id="downPayment" placeholder="e.g., 60000" min="0" step="1000" value="60000">
+        </div>
+        <button onclick="calculateMortgage()">Calculate</button>
+        
+        <div class="results" id="results">
+            <div class="result-row">
+                <span class="result-label">Monthly Payment:</span>
+                <span id="monthlyPayment">$0.00</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Total Payment:</span>
+                <span id="totalPayment">$0.00</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Total Interest:</span>
+                <span id="totalInterest">$0.00</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Loan-to-Value Ratio:</span>
+                <span id="ltvRatio">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set today's date and update date
+        function setDates() {
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('todaysDate').textContent = today.toLocaleDateString('en-US', options);
+            
+            // You can hard-code the last updated date here
+            // document.getElementById('lastUpdated').textContent = "April 22, 2025";
+        }
+        
+        // Use selected rate
+        function useRate(term) {
+            const rateElement = document.getElementById('rate' + term);
+            const rateValue = parseFloat(rateElement.textContent);
+            document.getElementById('interestRate').value = rateValue;
+            
+            // Set term to match selected rate
+            if (term === '30y') {
+                document.getElementById('loanTerm').value = 30;
+            } else if (term === '15y') {
+                document.getElementById('loanTerm').value = 15;
+            }
+            
+            // Recalculate
+            calculateMortgage();
+        }
+        
+        // Calculate mortgage
+        function calculateMortgage() {
+            // Get input values
+            const loanAmount = parseFloat(document.getElementById('loanAmount').value) || 0;
+            const downPayment = parseFloat(document.getElementById('downPayment').value) || 0;
+            const interestRate = parseFloat(document.getElementById('interestRate').value) || 0;
+            const loanTerm = parseFloat(document.getElementById('loanTerm').value) || 0;
+            
+            // Calculate principal (loan amount minus down payment)
+            const principal = loanAmount - downPayment;
+            
+            // Monthly interest rate
+            const monthlyRate = interestRate / 100 / 12;
+            
+            // Number of payments
+            const numberOfPayments = loanTerm * 12;
+            
+            // Calculate monthly payment
+            let monthlyPayment = 0;
+            if (interestRate > 0) {
+                monthlyPayment = principal * 
+                    (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / 
+                    (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+            } else {
+                monthlyPayment = principal / numberOfPayments;
+            }
+            
+            // Calculate total payment
+            const totalPayment = monthlyPayment * numberOfPayments;
+            
+            // Calculate total interest
+            const totalInterest = totalPayment - principal;
+            
+            // Calculate loan-to-value ratio
+            const ltvRatio = (principal / loanAmount) * 100;
+            
+            // Format currency
+            const formatter = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2
+            });
+            
+            // Display results
+            document.getElementById('monthlyPayment').textContent = formatter.format(monthlyPayment);
+            document.getElementById('totalPayment').textContent = formatter.format(totalPayment);
+            document.getElementById('totalInterest').textContent = formatter.format(totalInterest);
+            document.getElementById('ltvRatio').textContent = ltvRatio.toFixed(1) + '%';
+        }
+        
+        // Initialize on load
+        window.onload = function() {
+            setDates();
+            calculateMortgage();
+        };
+    </script>
+</body>
+</html>
